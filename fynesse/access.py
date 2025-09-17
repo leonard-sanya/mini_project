@@ -130,7 +130,7 @@ def data() -> Union[pd.DataFrame, None]:
         return None
 
 
-def show_copyright_info():
+def show_copyright_info() -> None:
     """
     Displays copyright and license information for the project
     by reading the LICENSE file if it exists.
