@@ -53,6 +53,8 @@ Best Practice on Implementation
 from typing import Any, Union
 import pandas as pd
 import logging
+import os
+import datetime
 
 # Set up basic logging
 logging.basicConfig(
@@ -128,10 +130,6 @@ def data() -> Union[pd.DataFrame, None]:
         return None
 
 
-import os
-import datetime
-
-
 def show_copyright_info():
     """
     Displays copyright and license information for the project
@@ -159,3 +157,4 @@ def show_copyright_info():
     """
 
     print(copyright_text)
+gi
