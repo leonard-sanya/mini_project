@@ -157,6 +157,3 @@ def show_copyright_info():
     """
 
     print(copyright_text)
-
-
-gi
