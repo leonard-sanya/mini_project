@@ -130,30 +130,37 @@ def data() -> Union[pd.DataFrame, None]:
         return None
 
 
-def show_copyright_info() -> None:
+import pandas as pd
+from google.colab import files  # if using Colab
+
+def show_license():
     """
-    Displays copyright and license information for the project
-    by reading the LICENSE file if it exists.
+    Displays the MIT License for this project.
     """
-    year = datetime.datetime.now().year
-    license_path = os.path.join(os.path.dirname(__file__), "..", "LICENSE")
-
-    if os.path.exists(license_path):
-        with open(license_path, "r", encoding="utf-8") as f:
-            license_text = f.read()
-    else:
-        license_text = "⚠️ LICENSE file not found. Please add one to the project root."
-
-    copyright_text = f"""
+    license_text = """
     ====================================================
-    📜 Copyright & License Information
+                       MIT License
     ====================================================
-    Project: Kenya Motor Insurance Analysis
-    Author: Your Name
-    Year: {year}
+    Copyright (c) 2025 Leonard Sanya
 
-    {license_text}
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
     ====================================================
     """
+    print(license_text)
 
-    print(copyright_text)
