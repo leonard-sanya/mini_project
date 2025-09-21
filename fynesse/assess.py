@@ -1,7 +1,8 @@
 from typing import Any, Union
 import pandas as pd
 import logging
-
+import seaborn as sns
+import matplotlib.pyplot as plt
 from .config import *
 from . import access
 
@@ -152,3 +153,40 @@ def harmonize_county_names(df_population, df_health_facilities, gdf_counties, ma
 
     print("Harmonization complete.")
     return df_population, df_health_facilities
+
+
+def plot_underserved_distribution(df, target_col="Underserved"):
+    """
+    Plots class balance in underserved vs adequately served counties
+    with percentage labels on the bars.
+
+    This falls under: assess (data exploration / visualization)
+    """
+    # Calculate percentages
+    proportions = df[target_col].value_counts(normalize=True) * 100
+
+    # Plot
+    ax = sns.countplot(
+        data=df,
+        x=target_col,
+        hue=target_col,
+        palette="Set2",
+        legend=False
+    )
+
+    # Add percentage labels on bars
+    for p in ax.patches:
+        height = p.get_height()
+        percentage = 100 * height / len(df)
+        ax.annotate(f'{percentage:.1f}%',
+                    (p.get_x() + p.get_width() / 2., height),
+                    ha='center', va='bottom', fontsize=10, color='black')
+
+    # Custom x-axis labels
+    ax.set_xticks([0, 1])
+    ax.set_xticklabels(["Underserved", "Adequately Served"])
+
+    plt.title("Underserved vs Adequately Served Counties")
+    plt.ylabel("Count of Counties")
+    plt.xlabel("")
+    plt.show()
