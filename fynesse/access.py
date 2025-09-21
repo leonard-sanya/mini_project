@@ -164,17 +164,3 @@ def show_copyright_info():
     """
     print(license_text)
 
-def load_datasets(raw_url):
-    """
-    Load a CSV dataset directly from a GitHub raw URL.
-    """
-    print(f"Loading dataset from {raw_url} ...")
-    
-    try:
-        df = pd.read_csv(raw_url)
-    except UnicodeDecodeError:
-        df = pd.read_csv(raw_url, encoding="ISO-8859-1")
-    
-    print(f"Dataset loaded:", df.shape)
-    print(' ')
-    return df

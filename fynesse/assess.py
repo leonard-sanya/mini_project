@@ -111,3 +111,16 @@ def view(data: Union[pd.DataFrame, Any]) -> None:
 def labelled(data: Union[pd.DataFrame, Any]) -> Union[pd.DataFrame, Any]:
     """Provide a labelled set of data ready for supervised learning."""
     raise NotImplementedError
+
+
+def standardize_county_column(df, possible_names):
+    """
+    Renames the first matching county column to 'county'
+    """
+    for col in df.columns:
+        if col.strip().lower() in [name.lower() for name in possible_names]:
+            df.rename(columns={col: "county"}, inplace=True)
+            df["County"] = df["county"].astype(str).str.strip().str.title()
+            return df
+    print(" No county column found in:", df.columns.tolist())
+    return df
