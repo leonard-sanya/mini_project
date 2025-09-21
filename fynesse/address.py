@@ -8,23 +8,24 @@ This module handles question addressing functionality including:
 - Dashboard creation
 """
 
-from typing import Any, Union
+from typing import Any, Union, Optional, List
 import pandas as pd
+import numpy as np
 import logging
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, label_binarize
 from sklearn.pipeline import make_pipeline, Pipeline
-from sklearn.metrics import classification_report
 from sklearn.metrics import (
+    classification_report,
     confusion_matrix,
     ConfusionMatrixDisplay,
     roc_curve,
     auc,
     roc_auc_score,
 )
-from typing import Optional, List
 from sklearn.naive_bayes import GaussianNB
+from itertools import cycle
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -180,27 +181,28 @@ def plot_roc_curve(
     X_test: pd.DataFrame,
     y_test: pd.Series,
     model_name: str = "Naive Bayes - Underserved Prediction",
+    lw: int = 2,
 ) -> None:
     """
-    Plot ROC curve for a trained Naive Bayes model.
+    Plot ROC curve for binary or multiclass classification.
 
     Args:
         nb_model (GaussianNB): trained model
         X_test (pd.DataFrame): test features
         y_test (pd.Series): test labels
-        model_name (str): name for labeling the plot
+        model_name (str): label for the plot
+        lw (int): line width
     """
-    # Identify positive class (assume label 1 = positive)
-    classes = nb_model.classes_
+    classes = np.unique(y_test)
     n_classes = len(classes)
 
     # Binarize labels
     y_test_bin = label_binarize(y_test, classes=classes)
-    if n_classes == 2:  # special case for binary
+    if n_classes == 2:
         y_test_bin = np.hstack((1 - y_test_bin, y_test_bin))
 
     # Predict probabilities
-    y_score = model.predict_proba(X_test)
+    y_score = nb_model.predict_proba(X_test)
 
     # Compute global AUC
     if n_classes == 2:
@@ -214,7 +216,7 @@ def plot_roc_curve(
         fpr[i], tpr[i], _ = roc_curve(y_test_bin[:, i], y_score[:, i])
         roc_auc[i] = auc(fpr[i], tpr[i])
 
-    # Plot all ROC curves
+    # Plot ROC curves
     plt.figure(figsize=(8, 6))
     colors = cycle(["aqua", "darkorange", "cornflowerblue", "green", "red"])
     for i, color in zip(range(n_classes), colors):
