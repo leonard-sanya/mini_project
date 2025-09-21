@@ -1,9 +1,11 @@
-from typing import Any, Union, Tuple, List
+from typing import Any, Union, Tuple, List, Optional
 import pandas as pd
 import logging
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+import geopandas as gpd
+import contextily as ctx
+import osmnx as ox
 from .config import *
 from . import access
 
@@ -196,4 +198,94 @@ def plot_underserved_distribution(
     plt.title("Underserved vs Adequately Served Counties")
     plt.ylabel("Count of Counties")
     plt.xlabel("")
+    plt.show()
+
+
+def plot_health_facilities(
+    df_facilities: pd.DataFrame,
+    gdf_counties: gpd.GeoDataFrame,
+    lon_col: str = "Longitude",
+    lat_col: str = "Latitude",
+    crs_epsg: int = 3857,
+    facility_color: str = "blue",
+    facility_size: int = 10,
+    alpha: float = 0.6,
+    title: str = "Health Facility Locations",
+) -> None:
+    gdf_facilities = gpd.GeoDataFrame(
+        df_facilities,
+        geometry=gpd.points_from_xy(df_facilities[lon_col], df_facilities[lat_col]),
+        crs="EPSG:4326",
+    )
+
+    # Project to target CRS
+    gdf_counties = gdf_counties.to_crs(epsg=crs_epsg)
+    gdf_facilities = gdf_facilities.to_crs(epsg=crs_epsg)
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(10, 10))
+    gdf_counties.boundary.plot(ax=ax, color="black", linewidth=0.8)
+    gdf_facilities.plot(
+        ax=ax,
+        color=facility_color,
+        markersize=facility_size,
+        alpha=alpha,
+        label="Health Facilities",
+    )
+
+    # Add basemap
+    ctx.add_basemap(ax, crs=gdf_counties.crs, source=ctx.providers.OpenStreetMap.Mapnik)
+
+    ax.set_title(title, fontsize=12)
+    ax.axis("off")
+    ax.legend()
+    plt.show()
+
+
+def plot_county_facilities(
+    county_name: str,
+    df_facilities: pd.DataFrame,
+    lon_col: str = "Longitude",
+    lat_col: str = "Latitude",
+    state_name: Optional[str] = None,
+    crs_epsg: int = 3857,
+    facility_color: str = "blue",
+    facility_size: int = 10,
+    alpha: float = 0.6,
+    figsize: tuple[int, int] = (10, 10),
+    title: Optional[str] = None,
+) -> None:
+    query = (
+        f"{county_name}, Kenya"
+        if not state_name
+        else f"{county_name}, {state_name}, Kenya"
+    )
+    gdf_county = ox.geocode_to_gdf(query).to_crs(epsg=crs_epsg)
+
+    gdf_facilities = gpd.GeoDataFrame(
+        df_facilities,
+        geometry=gpd.points_from_xy(df_facilities[lon_col], df_facilities[lat_col]),
+        crs="EPSG:4326",
+    ).to_crs(epsg=crs_epsg)
+
+    gdf_facilities = gpd.sjoin(
+        gdf_facilities, gdf_county, predicate="within", how="inner"
+    )
+
+    fig, ax = plt.subplots(figsize=figsize)
+    gdf_county.boundary.plot(ax=ax, color="black", linewidth=1)
+    gdf_facilities.plot(
+        ax=ax,
+        color=facility_color,
+        markersize=facility_size,
+        alpha=alpha,
+        label="Health Facilities",
+    )
+
+    ctx.add_basemap(ax, crs=gdf_county.crs, source=ctx.providers.OpenStreetMap.Mapnik)
+
+    plot_title = title or f"{county_name} County Health Facilities"
+    ax.set_title(plot_title, fontsize=12)
+    ax.axis("off")
+    ax.legend()
     plt.show()
