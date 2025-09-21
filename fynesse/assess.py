@@ -225,12 +225,22 @@ def plot_health_facilities(
     # Plot
     fig, ax = plt.subplots(figsize=(10, 10))
     gdf_counties.boundary.plot(ax=ax, color="black", linewidth=0.8)
+    # gdf_facilities.plot(
+    #     ax=ax,
+    #     color=facility_color,
+    #     markersize=facility_size,
+    #     alpha=alpha,
+    #     label="Health Facilities",
+    # )
+
     gdf_facilities.plot(
         ax=ax,
-        color=facility_color,
-        markersize=facility_size,
-        alpha=alpha,
-        label="Health Facilities",
+        column="Type",
+        categorical=True,
+        legend=False,
+        markersize=10,
+        alpha=0.7,
+        cmap="tab10",
     )
 
     # Add basemap
