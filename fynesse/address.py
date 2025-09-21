@@ -23,6 +23,7 @@ from sklearn.metrics import (
     roc_curve,
     auc,
     roc_auc_score,
+    accuracy_score,
 )
 from sklearn.naive_bayes import GaussianNB
 from itertools import cycle
@@ -174,6 +175,28 @@ def train_naive_bayes(X_train: pd.DataFrame, y_train: pd.Series):
     nb_model = GaussianNB()
     nb_model.fit(X_train, y_train)
     return nb_model
+
+
+def evaluate_naive_bayes(
+    model: GaussianNB, X_test: pd.DataFrame, y_test: pd.Series, label: int
+):
+    """
+    Evaluate Naive Bayes model and return probability of class 'label'
+    along with accuracy.
+    """
+    # Accuracy
+    acc = accuracy_score(y_test, model.predict(X_test))
+
+    # Predicted probabilities for each class
+    y_proba = model.predict_proba(X_test)
+
+    # Average probability of samples being 'label'
+    prob_label = y_proba[:, list(model.classes_).index(label)].mean()
+
+    return (
+        f"Probability of county being {label}: {prob_label:.3f} | "
+        f"Overall accuracy: {acc:.3f}"
+    )
 
 
 def plot_roc_curve(
