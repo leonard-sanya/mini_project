@@ -192,23 +192,45 @@ def plot_roc_curve(
     """
     # Identify positive class (assume label 1 = positive)
     classes = nb_model.classes_
-    pos_class_index = list(classes).index(1)
+    n_classes = len(classes)
 
-    # Predicted probabilities for positive class
-    y_pred_proba = nb_model.predict_proba(X_test)[:, pos_class_index]
+    # Binarize labels
+    y_test_bin = label_binarize(y_test, classes=classes)
+    if n_classes == 2:  # special case for binary
+        y_test_bin = np.hstack((1 - y_test_bin, y_test_bin))
 
-    # ROC curve
-    fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
-    roc_auc = auc(fpr, tpr)
+    # Predict probabilities
+    y_score = model.predict_proba(X_test)
 
+    # Compute global AUC
+    if n_classes == 2:
+        global_auc = roc_auc_score(y_test, y_score[:, 1])
+    else:
+        global_auc = roc_auc_score(y_test, y_score, multi_class="ovr")
+
+    # Store fpr, tpr, auc for each class
+    fpr, tpr, roc_auc = {}, {}, {}
+    for i in range(n_classes):
+        fpr[i], tpr[i], _ = roc_curve(y_test_bin[:, i], y_score[:, i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # Plot all ROC curves
     plt.figure(figsize=(8, 6))
-    plt.title(f"ROC Curve - {model_name} | AUC = {roc_auc:.2f}")
-    plt.plot(fpr, tpr, color="blue", lw=2, label="ROC Curve")
+    colors = cycle(["aqua", "darkorange", "cornflowerblue", "green", "red"])
+    for i, color in zip(range(n_classes), colors):
+        plt.plot(
+            fpr[i],
+            tpr[i],
+            color=color,
+            lw=lw,
+            label=f"ROC of class {classes[i]} (AUC = {roc_auc[i]:.2f})",
+        )
 
-    plt.plot([0, 1], [0, 1], color="gray", lw=1, linestyle="--")
+    plt.plot([0, 1], [0, 1], "k--", lw=lw)
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.legend(loc="upper right")
+    plt.title(f"ROC Curve - {model_name} (Overall AUC = {global_auc:.2f})")
+    plt.legend(loc="upper left")
     plt.show()
