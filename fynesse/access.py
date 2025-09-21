@@ -133,7 +133,7 @@ def data() -> Union[pd.DataFrame, None]:
 import pandas as pd
 from google.colab import files  # if using Colab
 
-def show_license():
+def show_copyright_info():
     """
     Displays the MIT License for this project.
     """
