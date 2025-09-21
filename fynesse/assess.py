@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 import geopandas as gpd
 import contextily as ctx
 import osmnx as ox
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+
+
 from .config import *
 from . import access
 
@@ -243,50 +247,6 @@ def plot_health_facilities(
     plt.show()
 
 
-# def plot_health_facilities_byType(
-#     df_facilities: pd.DataFrame,
-#     gdf_counties: gpd.GeoDataFrame,
-#     lon_col: str = "Longitude",
-#     lat_col: str = "Latitude",
-#     crs_epsg: int = 3857,
-#     facility_color: str = "blue",
-#     facility_size: int = 10,
-#     alpha: float = 0.6,
-#     title: str = "Health Facility Locations",
-# ) -> None:
-#     gdf_facilities = gpd.GeoDataFrame(
-#         df_facilities,
-#         geometry=gpd.points_from_xy(df_facilities[lon_col], df_facilities[lat_col]),
-#         crs="EPSG:4326",
-#     )
-
-#     # Project to target CRS
-#     gdf_counties = gdf_counties.to_crs(epsg=crs_epsg)
-#     gdf_facilities = gdf_facilities.to_crs(epsg=crs_epsg)
-
-#     # Plot
-#     fig, ax = plt.subplots(figsize=(10, 10))
-#     gdf_counties.boundary.plot(ax=ax, color="black", linewidth=0.8)
-
-#     gdf_facilities.plot(
-#         ax=ax,
-#         column="Type",
-#         categorical=True,
-#         legend=False,
-#         markersize=10,
-#         alpha=0.7,
-#         cmap="tab10",
-#     )
-
-#     # Add basemap
-#     ctx.add_basemap(ax, crs=gdf_counties.crs, source=ctx.providers.OpenStreetMap.Mapnik)
-
-#     ax.set_title(title, fontsize=12)
-#     ax.axis("off")
-#     ax.legend()
-#     plt.show()
-
-
 def plot_health_facilities_byType(
     df_facilities: pd.DataFrame,
     gdf_counties: gpd.GeoDataFrame,
@@ -353,56 +313,7 @@ def plot_health_facilities_byType(
     plt.show()
 
 
-# def plot_county_facilities(
-#     county_name: str,
-#     df_facilities: pd.DataFrame,
-#     lon_col: str = "Longitude",
-#     lat_col: str = "Latitude",
-#     state_name: Optional[str] = None,
-#     crs_epsg: int = 3857,
-#     facility_color: str = "blue",
-#     facility_size: int = 10,
-#     alpha: float = 0.6,
-#     figsize: tuple[int, int] = (10, 10),
-#     title: Optional[str] = None,
-# ) -> None:
-#     query = (
-#         f"{county_name}, Kenya"
-#         if not state_name
-#         else f"{county_name}, {state_name}, Kenya"
-#     )
-#     gdf_county = ox.geocode_to_gdf(query).to_crs(epsg=crs_epsg)
-
-#     gdf_facilities = gpd.GeoDataFrame(
-#         df_facilities,
-#         geometry=gpd.points_from_xy(df_facilities[lon_col], df_facilities[lat_col]),
-#         crs="EPSG:4326",
-#     ).to_crs(epsg=crs_epsg)
-
-#     gdf_facilities = gpd.sjoin(
-#         gdf_facilities, gdf_county, predicate="within", how="inner"
-#     )
-
-#     fig, ax = plt.subplots(figsize=figsize)
-#     gdf_county.boundary.plot(ax=ax, color="black", linewidth=1)
-#     gdf_facilities.plot(
-#         ax=ax,
-#         color=facility_color,
-#         markersize=facility_size,
-#         alpha=alpha,
-#         label="Health Facilities",
-#     )
-
-#     ctx.add_basemap(ax, crs=gdf_county.crs, source=ctx.providers.OpenStreetMap.Mapnik)
-
-#     plot_title = title or f"{county_name} County Health Facilities"
-#     ax.set_title(plot_title, fontsize=12)
-#     ax.axis("off")
-#     ax.legend()
-#     plt.show()
-
-
-def plot_county_facilities_by_type(
+def plot_county_facilities(
     county_name: str,
     df_facilities: pd.DataFrame,
     lon_col: str = "Longitude",
@@ -419,7 +330,6 @@ def plot_county_facilities_by_type(
     Plots a single county map from OSM and overlays health facilities colored by type,
     with the legend placed outside the map.
     """
-    # 1️⃣ Get county polygon
     query = (
         f"{county_name}, Kenya"
         if not state_name
@@ -427,19 +337,16 @@ def plot_county_facilities_by_type(
     )
     gdf_county = ox.geocode_to_gdf(query).to_crs(epsg=crs_epsg)
 
-    # 2️⃣ Convert facilities to GeoDataFrame
     gdf_facilities = gpd.GeoDataFrame(
         df_facilities,
         geometry=gpd.points_from_xy(df_facilities[lon_col], df_facilities[lat_col]),
         crs="EPSG:4326",
     ).to_crs(epsg=crs_epsg)
 
-    # 3️⃣ Keep only facilities within the county
     gdf_facilities = gpd.sjoin(
         gdf_facilities, gdf_county, predicate="within", how="inner"
     )
 
-    # 4️⃣ Plot
     fig, ax = plt.subplots(figsize=figsize)
     gdf_county.boundary.plot(ax=ax, color="black", linewidth=1)
 
@@ -456,15 +363,87 @@ def plot_county_facilities_by_type(
             label=typ,
         )
 
-    # 5️⃣ Add basemap
     ctx.add_basemap(ax, crs=gdf_county.crs, source=ctx.providers.OpenStreetMap.Mapnik)
 
-    # 6️⃣ Formatting
     plot_title = title or f"{county_name} County Health Facilities by Type"
     ax.set_title(plot_title, fontsize=12)
     ax.axis("off")
 
-    # Legend outside
     ax.legend(title="Facility Type", bbox_to_anchor=(1.05, 1), loc="upper left")
     plt.tight_layout()
     plt.show()
+
+
+def plot_feature_importance_rf(
+    df: pd.DataFrame,
+    target_col: str = "Underserved",
+    test_size: float = 0.2,
+    random_state: int = 42,
+    n_estimators: int = 100,
+    title: str = "Feature Importance Heatmap",
+):
+    """
+    Trains a Random Forest classifier and plots feature importance as a horizontal heatmap.
+
+    Args:
+        df (pd.DataFrame): Dataset including features and target.
+        target_col (str): Name of the target column.
+        test_size (float): Fraction of data for testing.
+        random_state (int): Random seed.
+        n_estimators (int): Number of trees in the Random Forest.
+        title (str): Plot title.
+    """
+    X = df.drop(
+        columns=[target_col] + [col for col in df.columns if col.lower() == "county"]
+    )
+    y = df[target_col]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state
+    )
+
+    # Train Random Forest
+    rf_clf = RandomForestClassifier(
+        n_estimators=n_estimators, random_state=random_state
+    )
+    rf_clf.fit(X_train, y_train)
+
+    # Compute feature importances
+    feature_importances = pd.DataFrame(
+        {"Feature": X.columns, "Importance": rf_clf.feature_importances_}
+    ).sort_values(by="Importance", ascending=False)
+
+    # Convert to percentage
+    feature_importances["Importance_pct"] = (
+        100
+        * feature_importances["Importance"]
+        / feature_importances["Importance"].sum()
+    )
+    feature_importances = feature_importances.sort_values(
+        by="Importance_pct", ascending=True
+    )
+
+    plt.figure(figsize=(8, max(4, 0.5 * len(feature_importances))))
+    bars = plt.barh(
+        y=feature_importances["Feature"],
+        width=feature_importances["Importance_pct"],
+        color=sns.color_palette("YlOrRd", n_colors=len(feature_importances)),
+        edgecolor="black",
+    )
+
+    for bar in bars:
+        width = bar.get_width()
+        plt.text(
+            width + 0.5,
+            bar.get_y() + bar.get_height() / 2,
+            f"{width:.1f}%",
+            va="center",
+            fontsize=8,
+        )
+
+    plt.xlabel("Importance (%)")
+    plt.title(title)
+    plt.tight_layout()
+    plt.show()
+
+    return rf_clf, feature_importances
