@@ -144,8 +144,8 @@ def harmonize_county_names(df_population, df_health_facilities, gdf_counties, ma
     mismatches_population = df_population_counties - geo_counties
     mismatches_health = health_facilities_counties - geo_counties
 
-    print("Counties in population but not in GeoJSON:", mismatches_population, '\n')
-    print("Counties in health_facilities but not in GeoJSON:", mismatches_health, '\n')
+    print("Counties in population but not in GeoJSON:", mismatches_population, "\n")
+    print("Counties in health_facilities but not in GeoJSON:", mismatches_health, "\n")
 
     # Apply harmonization
     df_health_facilities["County"] = df_health_facilities["County"].replace(mapping)
@@ -165,20 +165,21 @@ def plot_underserved_distribution(df, target_col="Underserved"):
 
     # Plot
     ax = sns.countplot(
-        data=df,
-        x=target_col,
-        hue=target_col,
-        palette="Set2",
-        legend=False
+        data=df, x=target_col, hue=target_col, palette="Set2", legend=False
     )
 
     # Add percentage labels on bars
     for p in ax.patches:
         height = p.get_height()
         percentage = 100 * height / len(df)
-        ax.annotate(f'{percentage:.1f}%',
-                    (p.get_x() + p.get_width() / 2., height),
-                    ha='center', va='bottom', fontsize=10, color='black')
+        ax.annotate(
+            f"{percentage:.1f}%",
+            (p.get_x() + p.get_width() / 2.0, height),
+            ha="center",
+            va="bottom",
+            fontsize=10,
+            color="black",
+        )
 
     # Custom x-axis labels
     ax.set_xticks([0, 1])
