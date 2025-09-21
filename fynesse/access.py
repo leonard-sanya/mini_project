@@ -131,7 +131,7 @@ def data() -> Union[pd.DataFrame, None]:
         return None
 
 
-def show_copyright_info():
+def show_copyright_info() -> None:
     """
     Displays the MIT License for this project.
     """
@@ -163,7 +163,7 @@ def show_copyright_info():
     print(license_text)
 
 
-def load_datasets(raw_url):
+def load_datasets(raw_url: str) -> pd.DataFrame:
     """
     Load a CSV dataset directly from a GitHub raw URL.
     """

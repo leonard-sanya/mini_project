@@ -1,8 +1,9 @@
-from typing import Any, Union
+from typing import Any, Union, Tuple, List
 import pandas as pd
 import logging
 import seaborn as sns
 import matplotlib.pyplot as plt
+
 from .config import *
 from . import access
 
@@ -114,7 +115,9 @@ def labelled(data: Union[pd.DataFrame, Any]) -> Union[pd.DataFrame, Any]:
     raise NotImplementedError
 
 
-def standardize_county_column(df, possible_names):
+def standardize_county_column(
+    df: pd.DataFrame, possible_names: List[str]
+) -> pd.DataFrame:
     """
     Renames the first matching county column to 'county'
     """
@@ -127,7 +130,12 @@ def standardize_county_column(df, possible_names):
     return df
 
 
-def harmonize_county_names(df_population, df_health_facilities, gdf_counties, mapping):
+def harmonize_county_names(
+    df_population: pd.DataFrame,
+    df_health_facilities: pd.DataFrame,
+    gdf_counties: pd.DataFrame,
+    mapping: dict,
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Harmonize county names across datasets to match GeoJSON counties.
 
@@ -155,7 +163,9 @@ def harmonize_county_names(df_population, df_health_facilities, gdf_counties, ma
     return df_population, df_health_facilities
 
 
-def plot_underserved_distribution(df, target_col="Underserved"):
+def plot_underserved_distribution(
+    df: pd.DataFrame, target_col: str = "Underserved"
+) -> None:
     """
     Plots class balance in underserved vs adequately served counties
     with percentage labels on the bars.
