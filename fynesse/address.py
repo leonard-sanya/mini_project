@@ -139,13 +139,8 @@ def evaluate_underserved_classifier(
         pd.Series: Predicted labels.
     """
     y_pred = clf.predict(X_test)
-    report_dict = classification_report(
-        y_test, y_pred, output_dict=True, zero_division=zero_division
-    )
-    report_df = pd.DataFrame(report_dict).transpose()
-    print("\nClassification Report:")
-    print(report_df.to_string())
-    return report_df
+    print(classification_report(y_test, y_pred, zero_division=zero_division))
+    return pd.Series(y_pred)
 
 
 def plot_underserved_confusion_matrix(
