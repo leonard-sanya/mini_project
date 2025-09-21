@@ -225,22 +225,13 @@ def plot_health_facilities(
     # Plot
     fig, ax = plt.subplots(figsize=(10, 10))
     gdf_counties.boundary.plot(ax=ax, color="black", linewidth=0.8)
-    # gdf_facilities.plot(
-    #     ax=ax,
-    #     color=facility_color,
-    #     markersize=facility_size,
-    #     alpha=alpha,
-    #     label="Health Facilities",
-    # )
 
     gdf_facilities.plot(
         ax=ax,
-        column="Type",
-        categorical=True,
-        legend=False,
-        markersize=10,
-        alpha=0.7,
-        cmap="tab10",
+        color=facility_color,
+        markersize=facility_size,
+        alpha=alpha,
+        label="Health Facilities",
     )
 
     # Add basemap
@@ -252,19 +243,183 @@ def plot_health_facilities(
     plt.show()
 
 
-def plot_county_facilities(
+# def plot_health_facilities_byType(
+#     df_facilities: pd.DataFrame,
+#     gdf_counties: gpd.GeoDataFrame,
+#     lon_col: str = "Longitude",
+#     lat_col: str = "Latitude",
+#     crs_epsg: int = 3857,
+#     facility_color: str = "blue",
+#     facility_size: int = 10,
+#     alpha: float = 0.6,
+#     title: str = "Health Facility Locations",
+# ) -> None:
+#     gdf_facilities = gpd.GeoDataFrame(
+#         df_facilities,
+#         geometry=gpd.points_from_xy(df_facilities[lon_col], df_facilities[lat_col]),
+#         crs="EPSG:4326",
+#     )
+
+#     # Project to target CRS
+#     gdf_counties = gdf_counties.to_crs(epsg=crs_epsg)
+#     gdf_facilities = gdf_facilities.to_crs(epsg=crs_epsg)
+
+#     # Plot
+#     fig, ax = plt.subplots(figsize=(10, 10))
+#     gdf_counties.boundary.plot(ax=ax, color="black", linewidth=0.8)
+
+#     gdf_facilities.plot(
+#         ax=ax,
+#         column="Type",
+#         categorical=True,
+#         legend=False,
+#         markersize=10,
+#         alpha=0.7,
+#         cmap="tab10",
+#     )
+
+#     # Add basemap
+#     ctx.add_basemap(ax, crs=gdf_counties.crs, source=ctx.providers.OpenStreetMap.Mapnik)
+
+#     ax.set_title(title, fontsize=12)
+#     ax.axis("off")
+#     ax.legend()
+#     plt.show()
+
+
+def plot_health_facilities_byType(
+    df_facilities: pd.DataFrame,
+    gdf_counties: gpd.GeoDataFrame,
+    lon_col: str = "Longitude",
+    lat_col: str = "Latitude",
+    crs_epsg: int = 3857,
+    facility_size: int = 10,
+    alpha: float = 0.6,
+    title: str = "Health Facility Locations",
+) -> None:
+    gdf_facilities = gpd.GeoDataFrame(
+        df_facilities,
+        geometry=gpd.points_from_xy(df_facilities[lon_col], df_facilities[lat_col]),
+        crs="EPSG:4326",
+    )
+
+    # Project to target CRS
+    gdf_counties = gdf_counties.to_crs(epsg=crs_epsg)
+    gdf_facilities = gdf_facilities.to_crs(epsg=crs_epsg)
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(10, 10))
+    gdf_counties.boundary.plot(ax=ax, color="black", linewidth=0.8)
+
+    # Plot facilities colored by Type
+    gdf_facilities.plot(
+        ax=ax,
+        column="Type",
+        categorical=True,
+        legend=False,  # We will add a custom legend
+        markersize=facility_size,
+        alpha=alpha,
+        cmap="tab10",
+    )
+
+    # Add basemap
+    ctx.add_basemap(ax, crs=gdf_counties.crs, source=ctx.providers.OpenStreetMap.Mapnik)
+
+    ax.set_title(title, fontsize=12)
+    ax.axis("off")
+
+    # Create legend outside the map
+    types = gdf_facilities["Type"].unique()
+    handles = [
+        plt.Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="w",
+            label=typ,
+            markerfacecolor=plt.get_cmap("tab10")(i / len(types)),
+            markersize=10,
+        )
+        for i, typ in enumerate(types)
+    ]
+    ax.legend(
+        handles=handles,
+        title="Facility Type",
+        bbox_to_anchor=(1.05, 1),
+        loc="upper left",
+    )
+
+    plt.tight_layout()
+    plt.show()
+
+
+# def plot_county_facilities(
+#     county_name: str,
+#     df_facilities: pd.DataFrame,
+#     lon_col: str = "Longitude",
+#     lat_col: str = "Latitude",
+#     state_name: Optional[str] = None,
+#     crs_epsg: int = 3857,
+#     facility_color: str = "blue",
+#     facility_size: int = 10,
+#     alpha: float = 0.6,
+#     figsize: tuple[int, int] = (10, 10),
+#     title: Optional[str] = None,
+# ) -> None:
+#     query = (
+#         f"{county_name}, Kenya"
+#         if not state_name
+#         else f"{county_name}, {state_name}, Kenya"
+#     )
+#     gdf_county = ox.geocode_to_gdf(query).to_crs(epsg=crs_epsg)
+
+#     gdf_facilities = gpd.GeoDataFrame(
+#         df_facilities,
+#         geometry=gpd.points_from_xy(df_facilities[lon_col], df_facilities[lat_col]),
+#         crs="EPSG:4326",
+#     ).to_crs(epsg=crs_epsg)
+
+#     gdf_facilities = gpd.sjoin(
+#         gdf_facilities, gdf_county, predicate="within", how="inner"
+#     )
+
+#     fig, ax = plt.subplots(figsize=figsize)
+#     gdf_county.boundary.plot(ax=ax, color="black", linewidth=1)
+#     gdf_facilities.plot(
+#         ax=ax,
+#         color=facility_color,
+#         markersize=facility_size,
+#         alpha=alpha,
+#         label="Health Facilities",
+#     )
+
+#     ctx.add_basemap(ax, crs=gdf_county.crs, source=ctx.providers.OpenStreetMap.Mapnik)
+
+#     plot_title = title or f"{county_name} County Health Facilities"
+#     ax.set_title(plot_title, fontsize=12)
+#     ax.axis("off")
+#     ax.legend()
+#     plt.show()
+
+
+def plot_county_facilities_by_type(
     county_name: str,
     df_facilities: pd.DataFrame,
     lon_col: str = "Longitude",
     lat_col: str = "Latitude",
+    type_col: str = "Type",
     state_name: Optional[str] = None,
     crs_epsg: int = 3857,
-    facility_color: str = "blue",
     facility_size: int = 10,
     alpha: float = 0.6,
     figsize: tuple[int, int] = (10, 10),
     title: Optional[str] = None,
 ) -> None:
+    """
+    Plots a single county map from OSM and overlays health facilities colored by type,
+    with the legend placed outside the map.
+    """
+    # 1️⃣ Get county polygon
     query = (
         f"{county_name}, Kenya"
         if not state_name
@@ -272,30 +427,44 @@ def plot_county_facilities(
     )
     gdf_county = ox.geocode_to_gdf(query).to_crs(epsg=crs_epsg)
 
+    # 2️⃣ Convert facilities to GeoDataFrame
     gdf_facilities = gpd.GeoDataFrame(
         df_facilities,
         geometry=gpd.points_from_xy(df_facilities[lon_col], df_facilities[lat_col]),
         crs="EPSG:4326",
     ).to_crs(epsg=crs_epsg)
 
+    # 3️⃣ Keep only facilities within the county
     gdf_facilities = gpd.sjoin(
         gdf_facilities, gdf_county, predicate="within", how="inner"
     )
 
+    # 4️⃣ Plot
     fig, ax = plt.subplots(figsize=figsize)
     gdf_county.boundary.plot(ax=ax, color="black", linewidth=1)
-    gdf_facilities.plot(
-        ax=ax,
-        color=facility_color,
-        markersize=facility_size,
-        alpha=alpha,
-        label="Health Facilities",
-    )
 
+    # Plot facilities by type
+    types = gdf_facilities[type_col].unique()
+    cmap = plt.get_cmap("tab10")
+    for i, typ in enumerate(types):
+        subset = gdf_facilities[gdf_facilities[type_col] == typ]
+        subset.plot(
+            ax=ax,
+            markersize=facility_size,
+            alpha=alpha,
+            color=cmap(i / len(types)),
+            label=typ,
+        )
+
+    # 5️⃣ Add basemap
     ctx.add_basemap(ax, crs=gdf_county.crs, source=ctx.providers.OpenStreetMap.Mapnik)
 
-    plot_title = title or f"{county_name} County Health Facilities"
+    # 6️⃣ Formatting
+    plot_title = title or f"{county_name} County Health Facilities by Type"
     ax.set_title(plot_title, fontsize=12)
     ax.axis("off")
-    ax.legend()
+
+    # Legend outside
+    ax.legend(title="Facility Type", bbox_to_anchor=(1.05, 1), loc="upper left")
+    plt.tight_layout()
     plt.show()
