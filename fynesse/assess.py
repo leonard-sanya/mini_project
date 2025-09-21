@@ -139,6 +139,7 @@ def standardize_county_column(
 def harmonize_county_names(
     df_population: pd.DataFrame,
     df_health_facilities: pd.DataFrame,
+    df_osm_geo_features: pd.DataFrame,
     gdf_counties: pd.DataFrame,
     mapping: dict,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -150,23 +151,29 @@ def harmonize_county_names(
     print("\nHarmonizing county names...")
 
     # Get unique counties from each dataset
-    df_population_counties = set(df_population["County"].unique())
+    population_counties = set(df_population["County"].unique())
     health_facilities_counties = set(df_health_facilities["County"].unique())
+    osm_geo_features_counties = set(df_osm_geo_features["County"].unique())
     geo_counties = set(gdf_counties["County"].unique())
 
     # Find mismatches
-    mismatches_population = df_population_counties - geo_counties
+    mismatches_population = population_counties - geo_counties
     mismatches_health = health_facilities_counties - geo_counties
+    mimatches_geo_feature = osm_geo_features_counties - geo_counties
 
     print("Counties in population but not in GeoJSON:", mismatches_population, "\n")
     print("Counties in health_facilities but not in GeoJSON:", mismatches_health, "\n")
+    print(
+        "Counties in osm geo features but not in GeoJSON:", mimatches_geo_feature, "\n"
+    )
 
     # Apply harmonization
     df_health_facilities["County"] = df_health_facilities["County"].replace(mapping)
     df_population["County"] = df_population["County"].replace(mapping)
+    df_osm_geo_features["County"] = df_osm_geo_features["County"].replace(mapping)
 
     print("Harmonization complete.")
-    return df_population, df_health_facilities
+    return df_population, df_health_facilities, df_osm_geo_features
 
 
 def plot_underserved_distribution(
