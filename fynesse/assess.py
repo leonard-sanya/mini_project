@@ -382,17 +382,6 @@ def plot_feature_importance_rf(
     n_estimators: int = 100,
     title: str = "Feature Importance Heatmap",
 ):
-    """
-    Trains a Random Forest classifier and plots feature importance as a horizontal heatmap.
-
-    Args:
-        df (pd.DataFrame): Dataset including features and target.
-        target_col (str): Name of the target column.
-        test_size (float): Fraction of data for testing.
-        random_state (int): Random seed.
-        n_estimators (int): Number of trees in the Random Forest.
-        title (str): Plot title.
-    """
     X = df.drop(
         columns=[target_col] + [col for col in df.columns if col.lower() == "county"]
     )
@@ -447,3 +436,22 @@ def plot_feature_importance_rf(
     plt.show()
 
     return rf_clf, feature_importances
+
+
+def analyse_correlation(
+    df: pd.DataFrame,
+    figsize: tuple[int, int] = (8, 6),
+    cmap: str = "coolwarm",
+    annot: bool = True,
+    title: str = "Correlation Matrix",
+):
+    numeric_df = df.apply(pd.to_numeric, errors="coerce").dropna(axis=1, how="all")
+    corr_matrix = numeric_df.corr()
+
+    plt.figure(figsize=figsize)
+    sns.heatmap(corr_matrix, annot=annot, cmap=cmap, fmt=".2f")
+    plt.title(title)
+    plt.tight_layout()
+    plt.show()
+
+    return corr_matrix

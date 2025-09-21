@@ -99,24 +99,6 @@ def analyze_data(data: Union[pd.DataFrame, Any]) -> dict[str, Any]:
         return {"error": str(e)}
 
 
-# def train_underserved_classifier(X_train, y_train, max_iter=1000,
-#   class_weight="balanced")-> Pipeline::
-#     """
-#     Trains a Logistic Regression model with scaling.
-
-#     Returns:
-#         clf: trained pipeline
-#     This falls under: assess (model evaluation / training)
-#     """
-#     clf = make_pipeline(
-#         StandardScaler(),
-#         LogisticRegression(max_iter=max_iter, class_weight=class_weight),
-#     )
-
-#     clf.fit(X_train, y_train)
-#     return clf
-
-
 def train_underserved_classifier(
     X_train: pd.DataFrame,
     y_train: pd.Series,
@@ -139,19 +121,6 @@ def train_underserved_classifier(
     return clf
 
 
-# def evaluate_underserved_classifier(clf, X_test, y_test, zero_division=0)-> pd.Series:
-#     """
-#     Predicts and prints a classification report.
-
-#     Returns:
-#         y_pred: predicted labels
-#     This falls under: assess (model evaluation)
-#     """
-#     y_pred = clf.predict(X_test)
-#     print(classification_report(y_test, y_pred, zero_division=zero_division))
-#     return y_pred
-
-
 def evaluate_underserved_classifier(
     clf: Pipeline, X_test: pd.DataFrame, y_test: pd.Series, zero_division: int = 0
 ) -> pd.Series:
@@ -164,22 +133,6 @@ def evaluate_underserved_classifier(
     y_pred = clf.predict(X_test)
     print(classification_report(y_test, y_pred, zero_division=zero_division))
     return pd.Series(y_pred)
-
-
-# def plot_underserved_confusion_matrix(
-#     y_true, y_pred, labels=None, title="Confusion Matrix"
-# )-> None:
-#     """
-#     Plots the confusion matrix for given true and predicted labels.
-
-#     This falls under: assess (data evaluation / visualization)
-#     """
-#     cm = confusion_matrix(y_true, y_pred, labels=labels)
-
-#     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
-#     disp.plot(cmap=plt.cm.Blues, values_format="d")
-#     plt.title(title)
-#     plt.show()
 
 
 def plot_underserved_confusion_matrix(
