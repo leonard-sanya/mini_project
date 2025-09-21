@@ -55,6 +55,8 @@ import pandas as pd
 import logging
 import os
 import datetime
+import pandas as pd
+from google.colab import files  # if using Colab
 
 # Set up basic logging
 logging.basicConfig(
@@ -128,10 +130,6 @@ def data() -> Union[pd.DataFrame, None]:
         logger.error(f"Unexpected error loading data: {e}")
         print(f"Error loading data: {e}")
         return None
-
-
-import pandas as pd
-from google.colab import files  # if using Colab
 
 
 def show_copyright_info():
