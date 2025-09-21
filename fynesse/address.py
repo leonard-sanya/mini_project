@@ -139,8 +139,13 @@ def evaluate_underserved_classifier(
         pd.Series: Predicted labels.
     """
     y_pred = clf.predict(X_test)
-    print(classification_report(y_test, y_pred, zero_division=zero_division))
-    return pd.Series(y_pred)
+    report_dict = classification_report(
+        y_test, y_pred, output_dict=True, zero_division=zero_division
+    )
+    report_df = pd.DataFrame(report_dict).transpose()
+    print("\nClassification Report:")
+    print(report_df.to_string())
+    return report_df
 
 
 def plot_underserved_confusion_matrix(
@@ -180,7 +185,7 @@ def plot_roc_curve(
     nb_model: GaussianNB,
     X_test: pd.DataFrame,
     y_test: pd.Series,
-    model_name: str = "Naive Bayes - Underserved Prediction",
+    model_name: str = "Naive Bayes",
     lw: int = 2,
 ) -> None:
     """
