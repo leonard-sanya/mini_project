@@ -125,14 +125,14 @@ def standardize_county_column(
     df: pd.DataFrame, possible_names: List[str]
 ) -> pd.DataFrame:
     """
-    Renames the first matching county column to 'county'
+    Renames the first matching county column to 'County' with cleaned formatting
     """
     for col in df.columns:
         if col.strip().lower() in [name.lower() for name in possible_names]:
-            df.rename(columns={col: "county"}, inplace=True)
-            df["County"] = df["county"].astype(str).str.strip().str.title()
+            df.rename(columns={col: "County"}, inplace=True)
+            df["County"] = df["County"].astype(str).str.strip().str.title()
             return df
-    print(" No county column found in:", df.columns.tolist())
+    print("No county column found in:", df.columns.tolist())
     return df
 
 
