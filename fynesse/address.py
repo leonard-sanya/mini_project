@@ -179,7 +179,7 @@ def plot_roc_curve(
     nb_model: GaussianNB,
     X_test: pd.DataFrame,
     y_test: pd.Series,
-    model_name: str = "Naive Bayes",
+    model_name: str = "Naive Bayes - Underserved Prediction",
 ) -> None:
     """
     Plot ROC curve for a trained Naive Bayes model.
@@ -202,12 +202,13 @@ def plot_roc_curve(
     roc_auc = auc(fpr, tpr)
 
     plt.figure(figsize=(8, 6))
-    plt.plot(fpr, tpr, color="blue", lw=2, label=f"{model_name} (AUC = {roc_auc:.2f})")
+    plt.title(f"ROC Curve - {model_name} | AUC = {roc_auc:.2f}")
+    plt.plot(fpr, tpr, color="blue", lw=2, label="ROC Curve")
+
     plt.plot([0, 1], [0, 1], color="gray", lw=1, linestyle="--")
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.title(f"ROC Curve - {model_name}")
-    plt.legend(loc="lower right")
+    plt.legend(loc="upper right")
     plt.show()
