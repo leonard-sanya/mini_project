@@ -124,3 +124,31 @@ def standardize_county_column(df, possible_names):
             return df
     print(" No county column found in:", df.columns.tolist())
     return df
+
+
+def harmonize_county_names(df_population, df_health_facilities, gdf_counties, mapping):
+    """
+    Harmonize county names across datasets to match GeoJSON counties.
+
+    This falls under: **assess** (data cleaning / standardization)
+    """
+    print("\nHarmonizing county names...")
+
+    # Get unique counties from each dataset
+    df_population_counties = set(df_population["County"].unique())
+    health_facilities_counties = set(df_health_facilities["County"].unique())
+    geo_counties = set(gdf_counties["County"].unique())
+
+    # Find mismatches
+    mismatches_population = df_population_counties - geo_counties
+    mismatches_health = health_facilities_counties - geo_counties
+
+    print("Counties in population but not in GeoJSON:", mismatches_population, '\n')
+    print("Counties in health_facilities but not in GeoJSON:", mismatches_health, '\n')
+
+    # Apply harmonization
+    df_health_facilities["County"] = df_health_facilities["County"].replace(mapping)
+    df_population["County"] = df_population["County"].replace(mapping)
+
+    print("Harmonization complete.")
+    return df_population, df_health_facilities
