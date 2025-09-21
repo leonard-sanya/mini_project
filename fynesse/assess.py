@@ -159,8 +159,6 @@ def plot_underserved_distribution(df, target_col="Underserved"):
     """
     Plots class balance in underserved vs adequately served counties
     with percentage labels on the bars.
-
-    This falls under: assess (data exploration / visualization)
     """
     # Calculate percentages
     proportions = df[target_col].value_counts(normalize=True) * 100
