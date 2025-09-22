@@ -55,6 +55,7 @@ import pandas as pd
 import logging
 import os
 import datetime
+import osmnx as ox
 
 # Set up basic logging
 logging.basicConfig(
@@ -174,4 +175,81 @@ def load_datasets(raw_url: str) -> pd.DataFrame:
         df = pd.read_csv(raw_url, encoding="ISO-8859-1")
 
     print("Dataset loaded:", df.shape)
+    return df
+
+
+def get_feature_vector(
+    latitude, longitude, box_size_km=2, features=None, all_features=None
+):
+    """
+    Return a consistent feature vector as a dict, even if OSM query fails
+    or no features are found.
+    """
+    # Construct bbox
+    box_width = box_size_km / 111
+    box_height = box_size_km / 111
+    north = latitude + box_height
+    south = latitude - box_height
+    west = longitude - box_width
+    east = longitude + box_width
+    bbox = (west, south, east, north)
+
+    # Build tags dictionary
+    tags = {k: True for k, _ in features} if features else {}
+
+    # Master feature list for consistent schema
+    if all_features is None:
+        all_features = [f"{k}:{v}" if v else k for k, v in features]
+
+    try:
+        pois = ox.features_from_bbox(bbox, tags)
+
+        if pois is None or pois.empty:
+            print("[Info] No features found, returning zero vector.")
+            return {feat: 0 for feat in all_features}
+
+        pois_df = pois.reset_index()
+        print(f"[Info] Retrieved {len(pois_df)} features from OSM.")
+
+    except Exception as e:
+        print(f"[Warning] OSM query failed: {e}")
+        return {feat: 0 for feat in all_features}
+
+    feature_vec = {feat: 0 for feat in all_features}
+    for key, value in features:
+        col_name = f"{key}:{value}" if value else key
+        if key in pois_df.columns:
+            if value:
+                feature_vec[col_name] = (
+                    pois_df[key].astype(str).str.lower().eq(str(value).lower()).sum()
+                )
+            else:
+                feature_vec[col_name] = pois_df[key].notna().sum()
+
+    return feature_vec
+
+
+def build_feature_dataframe(facility_dicts, features, box_size_km=1):
+    results = {}
+
+    for facility, coords in facility_dicts.items():
+        vec = get_feature_vector(
+            coords["latitude"],
+            coords["longitude"],
+            box_size_km=box_size_km,
+            features=features,
+        )
+
+        # Extract County from facility name (assumes "Facility, County")
+        if "," in facility:
+            county = facility.split(",")[-1].strip()
+        else:
+            county = "Unknown"
+
+        vec["County"] = county
+
+        # Store results indexed by County
+        results[facility] = vec
+
+    df = pd.DataFrame(results).T
     return df
