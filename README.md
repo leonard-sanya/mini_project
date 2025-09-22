@@ -6,7 +6,7 @@
 [![Poetry](https://img.shields.io/badge/poetry-1.0+-blue.svg)](https://python-poetry.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# Predicting Underserved Regions in Kenya: A Machine Learning Approach to Healthcare Facilities Distribution.
+## Predicting Underserved Regions in Kenya: A Machine Learning Approach to Healthcare Facilities Distribution.
 
 ## Abstract
 
@@ -40,7 +40,6 @@ The study follows the **Access – Assess – Address** framework:
 - Successfully merged heterogeneous datasets into a unified framework.  
 - Logistic Regression and Naïve Bayes effectively predicted whether a county was underserved.  
 - Visualizations revealed counties with limited health facilities relative to population needs.  
-- Machine learning insights can guide policymakers in **targeted resource allocation**.  
 
 ---
 
