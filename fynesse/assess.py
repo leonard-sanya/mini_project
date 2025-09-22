@@ -8,7 +8,7 @@ import contextily as ctx
 import osmnx as ox
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-
+import math
 
 from .config import *
 from . import access
@@ -522,14 +522,6 @@ def overview(df):
     print("\nUnique Values per Column:\n", df.nunique())
 
 
-# def numerical_summary(df, col):
-#     """Summarize a numerical variable"""
-#     print(df[col].describe())
-#     sns.histplot(df[col], kde=True, bins=30, color="steelblue")
-#     plt.title(f"Distribution of {col}")
-#     plt.show()
-
-
 def numerical_summary(df):
     """
     Summarize and visualize all numerical variables in a dataframe.
@@ -559,3 +551,55 @@ def numerical_summary(df):
         plt.ylabel("Frequency")
         plt.grid(axis="y", linestyle="--", alpha=0.7)
         plt.show()
+
+
+def plot_facility_scatterplots(
+    df, target_col="Facility Count", hue_col="Underserved", exclude_cols=None, n_cols=3
+):
+    if exclude_cols is None:
+        exclude_cols = [target_col, hue_col, "County"]
+
+    # Select numeric columns except excluded
+    cols_to_plot = [
+        col
+        for col in df.select_dtypes(include="number").columns
+        if col not in exclude_cols
+    ]
+
+    n_rows = math.ceil(len(cols_to_plot) / n_cols)
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(6 * n_cols, 5 * n_rows))
+    axes = axes.flatten()
+
+    for i, col in enumerate(cols_to_plot):
+        sns.scatterplot(
+            x=col, y=target_col, hue=hue_col, palette="Set1", data=df, ax=axes[i]
+        )
+        axes[i].set_title(f"{target_col} vs {col}")
+        axes[i].set_xlabel(col)
+        axes[i].set_ylabel(target_col)
+
+    # Remove empty subplots
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_hospitals_per_100k(
+    df, underserved_col="Underserved", metric_col="Hospital_per_100k"
+):
+    plt.figure(figsize=(6, 5))
+    sns.boxplot(
+        x=underserved_col,
+        y=metric_col,
+        hue=underserved_col,
+        data=df,
+        palette="Set2",
+        legend=False,
+    )
+
+    plt.title(f"{metric_col} vs {underserved_col}")
+    plt.xlabel(underserved_col)
+    plt.ylabel(metric_col)
+    plt.show()
