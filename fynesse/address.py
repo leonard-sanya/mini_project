@@ -257,5 +257,5 @@ def plot_roc_curve(
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
     plt.title(f"ROC Curve - {model_name} (Overall AUC = {global_auc:.2f})")
-    plt.legend(loc="upper left")
+    plt.legend(loc="lower right")
     plt.show()
