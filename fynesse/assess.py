@@ -462,3 +462,53 @@ def analyse_correlation(
     plt.show()
 
     return corr_matrix
+
+
+def data_preprocess(df_population, subset_health_facilities, hospital_threshold=None):
+    preprocessed_data = df_population[
+        ["County", "Total_Population19", "Population Density"]
+    ].copy()
+
+    df_facility_count = (
+        subset_health_facilities.groupby("County")
+        .size()
+        .reset_index(name="Facility Count")
+    )
+    preprocessed_data = pd.merge(
+        preprocessed_data, df_facility_count, on="County", how="left"
+    )
+
+    numeric_cols = ["Total_Population19", "Population Density", "Facility Count"]
+    for col in numeric_cols:
+        preprocessed_data[col] = (
+            preprocessed_data[col]
+            .astype(str)  # convert to string
+            .str.replace(",", "", regex=True)  # remove commas
+            .str.strip()  # remove leading/trailing spaces
+        )
+        preprocessed_data[col] = pd.to_numeric(preprocessed_data[col], errors="coerce")
+
+    # Calculate hospitals per 100k people
+    preprocessed_data["Hospital_per_100k"] = (
+        preprocessed_data["Facility Count"]
+        * 100_000
+        / preprocessed_data["Total_Population19"]
+    )
+
+    # Add underserved column (0 = Yes underserved, 1 = No)
+    preprocessed_data["Underserved"] = (
+        preprocessed_data["Hospital_per_100k"] >= hospital_threshold
+    ).astype(int)
+
+    preprocessed_data = preprocessed_data[
+        [
+            "County",
+            "Total_Population19",
+            "Population Density",
+            "Facility Count",
+            "Hospital_per_100k",
+            "Underserved",
+        ]
+    ]
+
+    return preprocessed_data
