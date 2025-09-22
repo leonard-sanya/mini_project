@@ -512,3 +512,19 @@ def data_preprocess(df_population, subset_health_facilities, hospital_threshold=
     ]
 
     return preprocessed_data
+
+
+def overview(df):
+    """Prints general info about the dataset"""
+    print("Shape:", df.shape)
+    print("\nData Types:\n", df.dtypes)
+    print("\nMissing Values:\n", df.isna().sum())
+    print("\nUnique Values per Column:\n", df.nunique())
+
+
+def numerical_summary(df, col):
+    """Summarize a numerical variable"""
+    print(df[col].describe())
+    sns.histplot(df[col], kde=True, bins=30, color="steelblue")
+    plt.title(f"Distribution of {col}")
+    plt.show()
