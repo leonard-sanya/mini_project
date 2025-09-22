@@ -522,9 +522,40 @@ def overview(df):
     print("\nUnique Values per Column:\n", df.nunique())
 
 
-def numerical_summary(df, col):
-    """Summarize a numerical variable"""
-    print(df[col].describe())
-    sns.histplot(df[col], kde=True, bins=30, color="steelblue")
-    plt.title(f"Distribution of {col}")
-    plt.show()
+# def numerical_summary(df, col):
+#     """Summarize a numerical variable"""
+#     print(df[col].describe())
+#     sns.histplot(df[col], kde=True, bins=30, color="steelblue")
+#     plt.title(f"Distribution of {col}")
+#     plt.show()
+
+
+def numerical_summary(df):
+    """
+    Summarize and visualize all numerical variables in a dataframe.
+
+    Parameters:
+    df : pandas DataFrame
+        The dataset containing numerical columns.
+    """
+    # Select numerical columns only
+    num_cols = df.select_dtypes(include=["number"]).columns
+
+    if len(num_cols) == 0:
+        print("⚠️ No numerical columns found in the dataframe.")
+        return
+
+    for col in num_cols:
+        print("=" * 50)
+        print(f"📊 Summary of {col}:")
+        print(df[col].describe())
+        print("Missing values:", df[col].isna().sum(), "\n")
+
+        # Plot distribution
+        plt.figure(figsize=(8, 5))
+        sns.histplot(df[col].dropna(), kde=True, bins=30, color="steelblue")
+        plt.title(f"Distribution of {col}", fontsize=14)
+        plt.xlabel(col)
+        plt.ylabel("Frequency")
+        plt.grid(axis="y", linestyle="--", alpha=0.7)
+        plt.show()
